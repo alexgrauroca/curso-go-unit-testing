@@ -2,21 +2,28 @@ ARG GO_VERSION=1.18.1
 
 FROM golang:${GO_VERSION}-alpine AS builder
 
+# Compile file
+# We aren't using a proxy, to use dependencies directly from go module
 RUN go env -w GOPROXY=direct
+# We need git to install the dependencies
 RUN apk add --no-cache git
+# Adding and updating security certificates
 RUN apk add --no-cache ca-certificates && update-ca-certificates
 
 WORKDIR /src
 
-COPY main.go main.go
-COPY ./go.mod ./go.sum ./
+# We need main.go to install the dependencies, otherwhise go mod vendor will return an error
+COPY ./main.go ./go.mod ./go.sum ./
 
 RUN go mod vendor
 
+# Copying all go directories
 COPY util util
 COPY controller controller
 COPY models models
 
+# CGO_ENABLED=0 => C compiler disabled
+# -installsuffic 'static' => necessary to run the app with scratch
 RUN CGO_ENABLED=0 go build \
     -installsuffix 'static' \
     -o /gounittesting
