@@ -38,6 +38,11 @@ func GetPokemon(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
 	apiPokemon, err := GetPokemonFromPokeApi(id)
+
+	if errors.Is(err, ErrPokemonNotFound) {
+		respondwithJSON(w, http.StatusNotFound, fmt.Sprintf("%s: %s", err.Error(), id))
+	}
+
 	if err != nil {
 		respondwithJSON(w, http.StatusInternalServerError, fmt.Sprintf("error while calling pokeapi: %s", err.Error()))
 	}
