@@ -1,0 +1,21 @@
+_id: req_c0388e170f2d442e84f4df6fa6d556ef
+type: Request
+parentId: wrk_dd5ac072b1994c9390b41f3ec96fae86
+modified: 1675086991718
+created: 1675086517226
+url: http://localhost:5055/pokemon
+name: "Pokemon "
+description: ""
+method: GET
+body: {}
+parameters: []
+headers: []
+authentication: {}
+metaSortKey: -1675086517226
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
