@@ -36,7 +36,6 @@ func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 func GetPokemon(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-
 	apiPokemon, err := GetPokemonFromPokeApi(id)
 
 	if errors.Is(err, ErrPokemonNotFound) {
