@@ -41,3 +41,13 @@ func TestParserPokemonErrNotFoundPokemonTypeName(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, ErrNotFoundPokemonTypeName.Error())
 }
+
+func BenchmarkParser(b *testing.B) {
+	response := models.PokeApiPokemonResponse{}
+	ReadBenchSampleJson(b, "pokeapi_response.json", &response)
+
+	for n := 0; n < b.N; n++ {
+		_, err := ParsePokemon(response)
+		assert.NoError(b, err)
+	}
+}
