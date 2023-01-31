@@ -14,6 +14,8 @@ import (
 )
 
 var (
+	PokeApiUriHost = "https://pokeapi.co/api"
+
 	ErrPokemonNotFound = errors.New("pokemon not found")
 	ErrPokeApiFailure  = errors.New("unexpected response in PokeApi")
 )
@@ -55,7 +57,7 @@ func GetPokemon(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPokemonFromPokeApi(id string) (models.PokeApiPokemonResponse, error) {
-	request := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", id)
+	request := GetPokemonFromPokeApiUrl(id)
 
 	response, err := http.Get(request)
 	if err != nil {
@@ -83,4 +85,8 @@ func GetPokemonFromPokeApi(id string) (models.PokeApiPokemonResponse, error) {
 	}
 
 	return apiPokemon, nil
+}
+
+func GetPokemonFromPokeApiUrl(id string) string {
+	return fmt.Sprintf("%s/v2/pokemon/%s", PokeApiUriHost, id)
 }

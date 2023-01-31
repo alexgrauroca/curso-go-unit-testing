@@ -12,8 +12,8 @@ func TestParserPokemonSuccess(t *testing.T) {
 	response := models.PokeApiPokemonResponse{}
 
 	// From util/samples.go
-	ReadTestSample(t, "api_response.json", &expected)
-	ReadTestSample(t, "pokeapi_response.json", &response)
+	ReadTestSampleJson(t, "api_response.json", &expected)
+	ReadTestSampleJson(t, "pokeapi_response.json", &response)
 
 	parsedPokemon, err := ParsePokemon(response)
 	assert.NoError(t, err)
@@ -24,7 +24,7 @@ func TestParserPokemonErrNotFoundPokemonType(t *testing.T) {
 	response := models.PokeApiPokemonResponse{}
 
 	// From util/samples.go
-	ReadTestSample(t, "pokeapi_response_type_not_found.json", &response)
+	ReadTestSampleJson(t, "pokeapi_response_type_not_found.json", &response)
 
 	_, err := ParsePokemon(response)
 	assert.Error(t, err)
@@ -35,7 +35,7 @@ func TestParserPokemonErrNotFoundPokemonTypeName(t *testing.T) {
 	response := models.PokeApiPokemonResponse{}
 
 	// From util/samples.go
-	ReadTestSample(t, "pokeapi_response_type_name_not_found.json", &response)
+	ReadTestSampleJson(t, "pokeapi_response_type_name_not_found.json", &response)
 
 	_, err := ParsePokemon(response)
 	assert.Error(t, err)
