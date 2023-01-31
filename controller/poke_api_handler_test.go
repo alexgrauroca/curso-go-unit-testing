@@ -3,21 +3,31 @@ package controller
 import (
 	"catching-pokemons/models"
 	"catching-pokemons/util"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	testGetPokemonIdBasePath = "/pokemon/{id}"
+	testValidId              = "pikachu"
+	testNotFoundId           = "not-found-id"
+	testInvalidId            = ""
 )
 
 func TestGetPokemonFromPokeApiSuccess(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	id := "pikachu"
 	body := util.ReadTestSample(t, "pokeapi_response.json")
-	httpmock.RegisterResponder("GET", GetPokemonFromPokeApiUrl(id), httpmock.NewBytesResponder(200, body))
+	httpmock.RegisterResponder("GET", GetPokemonFromPokeApiUrl(testValidId), httpmock.NewBytesResponder(200, body))
 
-	pokemon, err := GetPokemonFromPokeApi(id)
+	pokemon, err := GetPokemonFromPokeApi(testValidId)
 	assert.NoError(t, err)
 
 	expected := models.PokeApiPokemonResponse{}
@@ -30,10 +40,9 @@ func TestGetPokemonFromPokeApiNotFound(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	id := "id-not-found"
-	httpmock.RegisterResponder("GET", GetPokemonFromPokeApiUrl(id), httpmock.NewStringResponder(404, ""))
+	httpmock.RegisterResponder("GET", GetPokemonFromPokeApiUrl(testNotFoundId), httpmock.NewStringResponder(404, ""))
 
-	_, err := GetPokemonFromPokeApi(id)
+	_, err := GetPokemonFromPokeApi(testNotFoundId)
 	assert.Error(t, err)
 	assert.EqualError(t, err, ErrPokemonNotFound.Error())
 }
@@ -42,10 +51,62 @@ func TestGetPokemonFromPokeApiFailure(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	id := "charmander"
-	httpmock.RegisterResponder("GET", GetPokemonFromPokeApiUrl(id), httpmock.NewStringResponder(500, ""))
+	httpmock.RegisterResponder("GET", GetPokemonFromPokeApiUrl(testInvalidId), httpmock.NewStringResponder(500, ""))
 
-	_, err := GetPokemonFromPokeApi(id)
+	_, err := GetPokemonFromPokeApi(testInvalidId)
 	assert.Error(t, err)
 	assert.EqualError(t, err, ErrPokeApiFailure.Error())
+}
+
+func TestMuxGetPokemonSuccess(t *testing.T) {
+	r, err := http.NewRequest("GET", testGetPokemonIdBasePath, nil)
+	assert.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	vars := map[string]string{
+		"id": testValidId,
+	}
+
+	r = mux.SetURLVars(r, vars)
+	GetPokemon(w, r)
+
+	expectedPokemon := models.Pokemon{}
+	util.ReadTestSampleJson(t, "api_response.json", &expectedPokemon)
+
+	actualPokemon := models.Pokemon{}
+	err = json.Unmarshal(w.Body.Bytes(), &actualPokemon)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, expectedPokemon, actualPokemon)
+}
+
+func TestMuxGetPokemonNotFound(t *testing.T) {
+	r, err := http.NewRequest("GET", testGetPokemonIdBasePath, nil)
+	assert.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	vars := map[string]string{
+		"id": testNotFoundId,
+	}
+
+	r = mux.SetURLVars(r, vars)
+	GetPokemon(w, r)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestMuxGetPokemonFailure(t *testing.T) {
+	r, err := http.NewRequest("GET", testGetPokemonIdBasePath, nil)
+	assert.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	vars := map[string]string{
+		"id": testInvalidId,
+	}
+
+	r = mux.SetURLVars(r, vars)
+	GetPokemon(w, r)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
