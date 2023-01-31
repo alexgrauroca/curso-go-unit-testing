@@ -42,7 +42,7 @@ func TestGetPokemonFromPokeApiFailure(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	id := "pikachu"
+	id := "charmander"
 	httpmock.RegisterResponder("GET", GetPokemonFromPokeApiUrl(id), httpmock.NewStringResponder(500, ""))
 
 	_, err := GetPokemonFromPokeApi(id)
